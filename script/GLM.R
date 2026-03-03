@@ -111,7 +111,7 @@ for(j in 1:2){
     sd_value <- data.frame(sd.one_DB = sd(log(d$one_EB + 0.01)),sd.one_EB = sd(log(d$one_DB + 0.01)),
                            sd.two_DB = sd(log(d$two_EB + 0.01)),sd.two_EB = sd(log(d$two_DB + 0.01)))
     
-    # データの対数変換と正規化(z-score)
+    # データの正規化(z-score)
     d$RGR20 <- as.numeric(scale(d$RGR20))
     d$DBH05 <- as.numeric(scale(d$DBH05))
     d$one_EB <- as.numeric(scale(d$one_EB + 0.01))
@@ -133,6 +133,7 @@ for(j in 1:2){
     
     model <- glm(RGR20 ~ DBH05 + ALT + TPI + slope + two_EB + two_DB,
                  data = d, family = Gamma(link = "log"))
+    
     model_summary <- summary(model)
     
     # FE(各固定効果のP値とVIF値)
