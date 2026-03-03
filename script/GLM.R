@@ -1,16 +1,17 @@
 
 # packages ----------------------------------------------------------------
 
-# install.packages("glmmML")
-# install.packages("lme4")
-# install.packages("performance")
-# install.packages("broom")
-# install.packages("MuMIn")
-# install.packages("ggeffects")
+# renv::install("tidyverse")
+# renv::install("lme4")
+# renv::install("car")
+# renv::install("spdep")
+# renv::install("performance")
 
 library(tidyverse)
 library(lme4)
-# library(performance)
+library(car)
+library(spdep)
+library(performance)
 # library(broom)
 # library(MuMIn)
 # options(na.action="na.fail")
@@ -35,15 +36,14 @@ varcor.MESH <- vector()
 best.varcor.SP <- vector()
 best.varcor.MESH <- vector()
 R2 <- vector()
-d600 <- read.csv("KN600.csv")[c("STEM_ID","ALT","slope","TPI")]
-d700 <- read.csv("KN700.csv")[c("STEM_ID","ALT","slope","TPI")]
-d800 <- read.csv("KN800.csv")[c("STEM_ID","ALT","slope","TPI")]
+d600 <- read.csv("data/KN600.csv")[c("STEM_ID","ALT","slope","TPI")]
+d700 <- read.csv("data/KN700.csv")[c("STEM_ID","ALT","slope","TPI")]
+d800 <- read.csv("data/KN800.csv")[c("STEM_ID","ALT","slope","TPI")]
 
 for(j in 1:2){
   for(r in 1:50){
     
     distance[r] <- r
-    r <- 30
     d1 <- read.csv(paste0("Dd_20_edge/Dd600_r",r,"_1.csv"),header = T) %>%
       mutate(RGR20 = (log(DBH/DBH05))/19*100) %>%
       mutate(RGRa = (log(DBH15/DBH05))/10*100) %>%
@@ -108,44 +108,50 @@ for(j in 1:2){
                SP == "ブナ" | SP == "ケヤキ" | SP == "ヒメシャラ" |
                SP == "イヌシデ" | SP == "オオモミジ" | SP == "イタヤカエデ" | SP == "カジカエデ") %>%
       subset(LT == LeafType[j] & LD == 0 & DBH05 < 30 & RGR20 >= 0)
-    sd_value <- data.frame(sd.one_DB = sd(log(d$one_EB + 0.01)),sd.one_EB = sd(log(d$one_DB + 0.01)),
-                           sd.two_DB = sd(log(d$two_EB + 0.01)),sd.two_EB = sd(log(d$two_DB + 0.01)))
+    sd_value <- data.frame(sd.one_DB = sd(d$one_EB),sd.one_EB = sd(d$one_DB),
+                           sd.two_DB = sd(d$two_EB),sd.two_EB = sd(d$two_DB))
     
     # データの正規化(z-score)
-    d$RGR20 <- as.numeric(scale(d$RGR20))
+    d$RGR20 <- as.numeric(d$RGR20 + 0.01)
     d$DBH05 <- as.numeric(scale(d$DBH05))
-    d$one_EB <- as.numeric(scale(d$one_EB + 0.01))
-    d$one_DB <- as.numeric(scale(d$one_DB + 0.01))
-    d$one_all <- as.numeric(scale(d$one_all + 0.01))
-    d$two_EB <- as.numeric(scale(d$two_EB + 0.01))
-    d$two_DB <- as.numeric(scale(d$two_DB + 0.01))
-    d$two_all <- as.numeric(scale(d$two_all + 0.01))
+    d$one_EB <- as.numeric(scale(d$one_EB))
+    d$one_DB <- as.numeric(scale(d$one_DB))
+    d$one_all <- as.numeric(scale(d$one_all))
+    d$two_EB <- as.numeric(scale(d$two_EB))
+    d$two_DB <- as.numeric(scale(d$two_DB))
+    d$two_all <- as.numeric(scale(d$two_all))
     d$ALT <- as.numeric(scale(d$ALT))
     d$slope <- as.numeric(scale(d$slope))
     d$TPI <- as.numeric(scale(d$TPI))
     
+    # 近接行列
+    coords <- as.matrix(d[, c("X", "Y")])
+    nb <- dnearneigh(coords, d1 = 0, d2 = 20)
+    lw <- nb2listw(nb, style = "W",zero.policy = T)
     
     
     # model_summary
     print(paste0("---Now caliculating ",mname," model of ",LeafType[j]," for r = ",r,"----------"))
     
-    base_model <- glm(RGR20 ~ DBH05 + ALT + TPI + slope, data = d)
+    formula <- RGR20 ~ DBH05 + TPI + slope + PLOT + two_EB + two_DB
+    base_formula <- RGR20 ~ DBH05 + slope + TPI + PLOT
     
-    model <- glm(RGR20 ~ DBH05 + ALT + TPI + slope + two_EB + two_DB,
-                 data = d, family = Gamma(link = "log"))
+    base_model <- glm(base_formula, data = d, family = Gamma(link = "log"))
+    model <- glm(formula, data = d, family = Gamma(link = "log"))
     
     model_summary <- summary(model)
+    res <- residuals(model)
+    mtest <- moran.test(res,lw)
     
     # FE(各固定効果のP値とVIF値)
     coef <- as.data.frame(model_summary$Coef)
-    vif <- as.data.frame(vif(lmod))
+    vif <- as.data.frame(vif(model))
     FE <- merge(coef,vif, by = "row.names", all = TRUE)
     
     # result(モデルの回帰係数とAIC,logLik)
     AIC <- AIC(model)
     deltaAIC <- AIC(base_model) - AIC(model)
     logLik <- logLik(model)
-    lambda <- model_summary$lambda
     M_stat <- mtest[["statistic"]]
     M_p.value <- mtest[["p.value"]]
     
@@ -174,7 +180,7 @@ for(j in 1:2){
     
     # R2[r] <- model_summary[["r.sq"]]
     # best.R2[r] <- best.summary[["r.sq"]]
-    R2[r] <- r2(model)[["R2"]][1]
+    R2[r] <- r2(model)[["R2_Nagelkerke"]][["Nagelkerke's R2"]]
     
     # モデルが正常に作成された場合
     if (!is.null(model)) {
@@ -191,6 +197,6 @@ for(j in 1:2){
   
   fit <- cbind(distance,total_results,R2,converge)
   
-  write.csv(fit,paste0("Results/GLM/All_Plots/Summary_",mname,"_",LeafType[j],".csv"),fileEncoding = "Shift-jis",row.names = F)
-  write.csv(total_FE,paste0("Results/GLM/All_Plots/FE_",mname,"_",LeafType[j],".csv"),fileEncoding = "Shift-jis",row.names = F)
+  write.csv(fit,paste0("result/glmm/Summary_",mname,"_",LeafType[j],".csv"),fileEncoding = "Shift-jis",row.names = F)
+  write.csv(total_FE,paste0("result/glmm/FE_",mname,"_",LeafType[j],".csv"),fileEncoding = "Shift-jis",row.names = F)
 }
