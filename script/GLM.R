@@ -45,9 +45,10 @@ for(j in 1:2){
     
     distance[r] <- r
     d1 <- read.csv(paste0("Dd_20_edge/Dd600_r",r,"_1.csv"),header = T) %>%
-      mutate(RGR20 = (log(DBH/DBH05))/19*100) %>%
-      mutate(RGRa = (log(DBH15/DBH05))/10*100) %>%
-      mutate(RGRb = (log(DBH/DBH15))/9*100) %>%
+      mutate(RGR20 = DBH/DBH05) %>%
+      mutate(RGRa = DBH15/DBH05) %>%
+      mutate(RGRb = DBH/DBH15) %>%
+      mutate(t = 19) %>%
       left_join(d600,by = "STEM_ID") %>%
       group_by(IND_ID) %>%
       mutate(DBH = max(DBH)) %>%
@@ -55,9 +56,10 @@ for(j in 1:2){
       ungroup()
     d1$PLOT <- factor("ALT600")
     d2 <- read.csv(paste0("Dd_20_edge/Dd700_r",r,"_1.csv"),header = T) %>%
-      mutate(RGR20 = (log(DBH/DBH05))/17*100) %>%
-      mutate(RGRa = (log(DBH15/DBH05))/10*100) %>%
-      mutate(RGRb = (log(DBH/DBH15))/7*100) %>%
+      mutate(RGR20 = DBH/DBH05) %>%
+      mutate(RGRa = DBH15/DBH05) %>%
+      mutate(RGRb = DBH/DBH15) %>%
+      mutate(t = 17) %>%
       left_join(d700,by = "STEM_ID") %>%
       group_by(IND_ID) %>%
       mutate(DBH = max(DBH)) %>%
@@ -65,9 +67,10 @@ for(j in 1:2){
       ungroup()
     d2$PLOT <- factor("ALT700")
     d3 <- read.csv(paste0("Dd_20_edge/Dd800_r",r,"_1.csv"),header = T) %>%
-      mutate(RGR20 = (log(DBH/DBH05))/19*100) %>%
-      mutate(RGRa = (log(DBH15/DBH05))/10*100) %>%
-      mutate(RGRb = (log(DBH/DBH15))/9*100) %>%
+      mutate(RGR20 = DBH/DBH05) %>%
+      mutate(RGRa = DBH15/DBH05) %>%
+      mutate(RGRb = DBH/DBH15) %>%
+      mutate(t = 19) %>%
       left_join(d800,by = "STEM_ID") %>%
       group_by(IND_ID) %>%
       mutate(DBH = max(DBH)) %>%
@@ -112,17 +115,17 @@ for(j in 1:2){
                            sd.two_DB = sd(d$two_EB),sd.two_EB = sd(d$two_DB))
     
     # データの正規化(z-score)
-    d$RGR20 <- as.numeric(d$RGR20 + 0.01)
-    d$DBH05 <- as.numeric(scale(d$DBH05))
-    d$one_EB <- as.numeric(scale(d$one_EB))
-    d$one_DB <- as.numeric(scale(d$one_DB))
-    d$one_all <- as.numeric(scale(d$one_all))
-    d$two_EB <- as.numeric(scale(d$two_EB))
-    d$two_DB <- as.numeric(scale(d$two_DB))
-    d$two_all <- as.numeric(scale(d$two_all))
-    d$ALT <- as.numeric(scale(d$ALT))
-    d$slope <- as.numeric(scale(d$slope))
-    d$TPI <- as.numeric(scale(d$TPI))
+    d$RGR20 <- as.numeric(d$RGR20)
+    d$DBH05 <- as.numeric(scale(log(d$DBH05)))
+    d$one_EB <- as.numeric(scale(log(d$one_EB + 0.01)))
+    d$one_DB <- as.numeric(scale(log(d$one_DB + 0.01)))
+    d$one_all <- as.numeric(scale(log(d$one_all + 0.01)))
+    d$two_EB <- as.numeric(scale(log(d$two_EB + 0.01)))
+    d$two_DB <- as.numeric(scale(log(d$two_DB + 0.01)))
+    d$two_all <- as.numeric(scale(log(d$two_all + 0.01)))
+    d$ALT <- as.numeric(scale(log(d$ALT)))
+    d$slope <- as.numeric(scale(log(d$slope)))
+    d$TPI <- as.numeric(scale(log(d$TPI)))
     
     # 近接行列
     coords <- as.matrix(d[, c("X", "Y")])
@@ -133,11 +136,11 @@ for(j in 1:2){
     # model_summary
     print(paste0("---Now caliculating ",mname," model of ",LeafType[j]," for r = ",r,"----------"))
     
-    formula <- RGR20 ~ DBH05 + TPI + slope + PLOT + two_EB + two_DB
     base_formula <- RGR20 ~ DBH05 + slope + TPI + PLOT
+    formula <- RGR20 ~ DBH05 + TPI + slope + PLOT + two_EB + two_DB
     
-    base_model <- glm(base_formula, data = d, family = Gamma(link = "log"))
-    model <- glm(formula, data = d, family = Gamma(link = "log"))
+    base_model <- glm(base_formula, offset = log(t), family = Gamma(link = "log"), data = d)
+    model <- glm(formula, offset = log(t), family = Gamma(link = "log"), data = d)
     
     model_summary <- summary(model)
     res <- residuals(model)
