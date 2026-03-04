@@ -125,7 +125,7 @@ for(j in 1:2){
     d$two_all <- as.numeric(scale(log(d$two_all + 0.01)))
     d$ALT <- as.numeric(scale(log(d$ALT)))
     d$slope <- as.numeric(scale(log(d$slope)))
-    d$TPI <- as.numeric(scale(log(d$TPI)))
+    d$TPI <- as.numeric(scale(log(d$TPI+1)))
     
     # 近接行列
     coords <- as.matrix(d[, c("X", "Y")])
@@ -160,7 +160,7 @@ for(j in 1:2){
     
     
     # 回帰係数をデータフレームに格納し、行と列を反転
-    result <- as.data.frame(cbind(AIC,deltaAIC,logLik,lambda,M_stat,M_p.value))
+    result <- as.data.frame(cbind(AIC,deltaAIC,logLik,M_stat,M_p.value))
     
     # result（best.result），result（best.result）の結合
     if(r == 1){
