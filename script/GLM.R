@@ -23,7 +23,7 @@ library(performance)
 # repeat ------------------------------------------------------------------
 
 
-mname <- "understory"
+mname <- "non-canopy"
 
 # 空のベクトルまたはリストを作成
 LeafType <- c("EB","DB")
@@ -49,6 +49,7 @@ for(j in 1:2){
       mutate(RGRa = DBH15/DBH05) %>%
       mutate(RGRb = DBH/DBH15) %>%
       mutate(t = 19) %>%
+      mutate(IDBH = DBH-DBH05) %>%
       left_join(d600,by = "STEM_ID") %>%
       group_by(IND_ID) %>%
       mutate(DBH = max(DBH)) %>%
@@ -60,6 +61,7 @@ for(j in 1:2){
       mutate(RGRa = DBH15/DBH05) %>%
       mutate(RGRb = DBH/DBH15) %>%
       mutate(t = 17) %>%
+      mutate(IDBH = DBH-DBH05) %>%
       left_join(d700,by = "STEM_ID") %>%
       group_by(IND_ID) %>%
       mutate(DBH = max(DBH)) %>%
@@ -71,6 +73,7 @@ for(j in 1:2){
       mutate(RGRa = DBH15/DBH05) %>%
       mutate(RGRb = DBH/DBH15) %>%
       mutate(t = 19) %>%
+      mutate(IDBH = DBH-DBH05) %>%
       left_join(d800,by = "STEM_ID") %>%
       group_by(IND_ID) %>%
       mutate(DBH = max(DBH)) %>%
@@ -104,17 +107,18 @@ for(j in 1:2){
       dplyr::select(-intersect(names(td1), names(td2)))
     
     d <- bind_cols(td1, td2_unique) %>%
-      subset(!is.na(RGR20) & !is.na(DBH05)& !is.na(ALT) &
+      subset(!is.na(RGR20) & !is.na(DBH05)& !is.na(ALT) & !is.na(IDBH) &
                !is.na(one_EB) & !is.na(one_DB) & !is.na(one_EC) &
                !is.na(two_EB) & !is.na(two_DB) & !is.na(two_EC)) %>%
-      subset(SP == "アカガシ" | SP == "イヌガシ" | SP == "ウラジロガシ" |
-               SP == "ブナ" | SP == "ケヤキ" | SP == "ヒメシャラ" |
-               SP == "イヌシデ" | SP == "オオモミジ" | SP == "イタヤカエデ" | SP == "カジカエデ") %>%
-      subset(LT == LeafType[j] & LD == 0 & DBH05 < 30 & RGR20 >= 0)
+      subset(SP != "アカガシ" & SP != "イヌガシ" & SP != "ウラジロガシ" &
+               SP != "ブナ" & SP != "ケヤキ" & SP != "ヒメシャラ" &
+               SP != "イヌシデ" & SP != "オオモミジ" & SP != "イタヤカエデ" & SP != "カジカエデ") %>%
+      subset(LT == LeafType[j] & LD == 0 & DBH05 < 30 & IDBH >= 0)
     sd_value <- data.frame(sd.one_DB = sd(d$one_EB),sd.one_EB = sd(d$one_DB),
                            sd.two_DB = sd(d$two_EB),sd.two_EB = sd(d$two_DB))
     
     # データの正規化(z-score)
+    d$IDBH <- as.numeric(d$IDBH + 0.01)
     d$RGR20 <- as.numeric(d$RGR20)
     d$DBH05 <- as.numeric(scale(log(d$DBH05)))
     d$one_EB <- as.numeric(scale(log(d$one_EB + 0.01)))
@@ -136,8 +140,8 @@ for(j in 1:2){
     # model_summary
     print(paste0("---Now caliculating ",mname," model of ",LeafType[j]," for r = ",r,"----------"))
     
-    base_formula <- RGR20 ~ DBH05 + slope + TPI + PLOT
-    formula <- RGR20 ~ DBH05 + TPI + slope + PLOT + two_EB + two_DB
+    base_formula <- IDBH ~ DBH05 + slope + TPI + PLOT
+    formula <- IDBH ~ DBH05 + TPI + slope + PLOT + two_EB + two_DB
     
     base_model <- glm(base_formula, offset = log(t), family = Gamma(link = "log"), data = d)
     model <- glm(formula, offset = log(t), family = Gamma(link = "log"), data = d)
