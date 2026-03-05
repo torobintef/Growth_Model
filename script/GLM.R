@@ -6,24 +6,25 @@
 # renv::install("car")
 # renv::install("spdep")
 # renv::install("performance")
+# renv::install("parameters")
 
 library(tidyverse)
 library(lme4)
 library(car)
 library(spdep)
 library(performance)
+library(parameters)
 # library(broom)
 # library(MuMIn)
 # options(na.action="na.fail")
 # library(ggeffects)
-# library(parameters)
 # library(mgcv) #gam
 
 
 # repeat ------------------------------------------------------------------
 
 
-mname <- "non-canopy"
+mname <- "canopy"
 
 # 空のベクトルまたはリストを作成
 LeafType <- c("EB","DB")
@@ -110,10 +111,11 @@ for(j in 1:2){
       subset(!is.na(RGR20) & !is.na(DBH05)& !is.na(ALT) & !is.na(IDBH) &
                !is.na(one_EB) & !is.na(one_DB) & !is.na(one_EC) &
                !is.na(two_EB) & !is.na(two_DB) & !is.na(two_EC)) %>%
-      subset(SP != "アカガシ" & SP != "イヌガシ" & SP != "ウラジロガシ" &
-               SP != "ブナ" & SP != "ケヤキ" & SP != "ヒメシャラ" &
-               SP != "イヌシデ" & SP != "オオモミジ" & SP != "イタヤカエデ" & SP != "カジカエデ") %>%
-      subset(LT == LeafType[j] & LD == 0 & DBH05 < 30 & IDBH >= 0)
+      subset(SP == "アカガシ" | SP == "イヌガシ" | SP == "ウラジロガシ" |
+               SP == "ブナ" | SP == "ケヤキ" | SP == "ヒメシャラ" |
+               SP == "イヌシデ" | SP == "オオモミジ" | SP == "イタヤカエデ" | 
+               SP == "カジカエデ") %>%
+      subset(LT == LeafType[j] & LD == 0 & DBH05 >= 30 & IDBH >= 0)
     sd_value <- data.frame(sd.one_DB = sd(d$one_EB),sd.one_EB = sd(d$one_DB),
                            sd.two_DB = sd(d$two_EB),sd.two_EB = sd(d$two_DB))
     
@@ -151,9 +153,17 @@ for(j in 1:2){
     mtest <- moran.test(res,lw)
     
     # FE(各固定効果のP値とVIF値)
-    coef <- as.data.frame(model_summary$Coef)
-    vif <- as.data.frame(vif(model))
-    FE <- merge(coef,vif, by = "row.names", all = TRUE)
+    fixed <- as.data.frame(model_summary$coefficients)
+    colltest <- check_collinearity(model)
+    rownames(colltest) <- colltest[[1]]
+    colltest <- colltest[,-1]
+    param <- as.data.frame(model_parameters(model))
+    rownames(param) <- param[[1]]
+    param <- param[,-1]
+    FE <- merge(fixed,colltest, by = "row.names", all = TRUE)
+    rownames(FE) <- FE[[1]]
+    FE <- FE[,-1]
+    FE <- merge(FE,param, by = "row.names", all = TRUE)
     
     # result(モデルの回帰係数とAIC,logLik)
     AIC <- AIC(model)
