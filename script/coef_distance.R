@@ -1,5 +1,6 @@
+library(tidyverse)
 
-functional <- "non-canopy"
+functional <- "understory"
 leaf <- "DB"
 df <- read.csv("result/summary/parameters.csv",header = T) %>%
   subset(distance == 5 | distance == 10 | distance == 15 | distance == 20 | distance == 25 |
@@ -47,14 +48,14 @@ col2 <- MetBrewer::met.brewer("Egypt", 2)[2]
            col = cols)
     
     axis(side = 1,at = seq(5,45,by = 10),lwd = 1.5,tck = -0.03,padj = 1,labels = F)
-    axis(side = 1,at = seq(10,50,by = 10),lwd = 1.5,tck = -0.06,padj = 0)
-    # axis(side = 1,at = seq(0,50,by = 10),lwd = 1.5,tck = -0.06,padj = 0,labels = F)
+    # axis(side = 1,at = seq(10,50,by = 10),lwd = 1.5,tck = -0.06,padj = 0)
+    axis(side = 1,at = seq(0,50,by = 10),lwd = 1.5,tck = -0.06,padj = 0,labels = F)
     # axis(side = 2,at = seq(-1,0.5,by = 0.5),lwd = 1.5,las = 1,tck = -0.05,hadj = 1.2)
     axis(side = 2,at = seq(-1,0.5,by = 0.5),lwd = 1.5,las = 1,tck = -0.05,hadj = 1.2,labels = F)
-    text(4,0.4,adj = 0,labels = "（D）落葉広葉樹－非林冠構成種",family = "BIZ UDPGothic")
-    mtext("近接距離",side = 1,line = 3.3,cex = 1,family = "BIZ UDPGothic")
+    text(4,0.4,adj = 0,labels = "（B）落葉広葉樹－林冠構成種",family = "BIZ UDPGothic")
+    # mtext("近接距離",side = 1,line = 3.3,cex = 1,family = "BIZ UDPGothic")
     box(lwd = 1.5)
-    mtext("(m)",side = 1,line = 1,at = 53,cex = 0.8)
+    # mtext("(m)",side = 1,line = 1,at = 53,cex = 0.8)
     # mtext("Coefficient",side = 2,line = 5,cex = 1)
     dev.off()
 
