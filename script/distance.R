@@ -2,7 +2,6 @@
   
   # renv::install("mgcv)
   # renv::install("gratia")
-  # renv::install("gratia")
   
   # devtools::install_github("BlakeRMills/MetBrewer") 
   library(mgcv) #gam

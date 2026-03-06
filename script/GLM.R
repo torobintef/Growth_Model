@@ -21,7 +21,7 @@ library(parameters)
 # repeat ------------------------------------------------------------------
 
 
-mname <- "canopy"
+mname <- "non-canopy"
 
 # 空のベクトルまたはリストを作成
 LeafType <- c("EB","DB")
@@ -108,11 +108,11 @@ for(j in 1:2){
       subset(!is.na(RGR20) & !is.na(DBH05)& !is.na(ALT) & !is.na(IDBH) &
                !is.na(one_EB) & !is.na(one_DB) & !is.na(one_EC) &
                !is.na(two_EB) & !is.na(two_DB) & !is.na(two_EC)) %>%
-      subset(SP == "アカガシ" | SP == "イヌガシ" | SP == "ウラジロガシ" |
-               SP == "ブナ" | SP == "ケヤキ" | SP == "ヒメシャラ" |
-               SP == "イヌシデ" | SP == "オオモミジ" | SP == "イタヤカエデ" | 
-               SP == "カジカエデ") %>%
-      subset(LT == LeafType[j] & LD == 0 & DBH05 >= 30 & IDBH >= 0)
+      subset(SP != "アカガシ" & SP != "イヌガシ" & SP != "ウラジロガシ" &
+               SP != "ブナ" & SP != "ケヤキ" & SP != "ヒメシャラ" &
+               SP != "イヌシデ" & SP != "オオモミジ" & SP != "イタヤカエデ" & 
+               SP != "カジカエデ") %>%
+      subset(LT == LeafType[j] & LD == 0 & DBH05 < 30 & IDBH >= 0)
     sd_value <- data.frame(sd.one_DB = sd(d$one_EB),sd.one_EB = sd(d$one_DB),
                            sd.two_DB = sd(d$two_EB),sd.two_EB = sd(d$two_DB))
     
@@ -126,9 +126,9 @@ for(j in 1:2){
     d$two_EB <- as.numeric(scale(log(d$two_EB + 0.01)))
     d$two_DB <- as.numeric(scale(log(d$two_DB + 0.01)))
     d$two_all <- as.numeric(scale(log(d$two_all + 0.01)))
-    d$ALT <- as.numeric(scale(log(d$ALT)))
-    d$slope <- as.numeric(scale(log(d$slope)))
-    d$TPI <- as.numeric(scale(log(d$TPI+1)))
+    d$ALT <- as.numeric(scale(d$ALT))
+    d$slope <- as.numeric(scale(d$slope))
+    d$TPI <- as.numeric(scale(d$TPI))
     
     # 近接行列
     coords <- as.matrix(d[, c("X", "Y")])
