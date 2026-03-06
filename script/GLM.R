@@ -21,7 +21,7 @@ library(parameters)
 # repeat ------------------------------------------------------------------
 
 
-mname <- "non-canopy"
+mname <- "canopy"
 
 # 空のベクトルまたはリストを作成
 LeafType <- c("EB","DB")
@@ -108,13 +108,12 @@ for(j in 1:2){
       subset(!is.na(RGR20) & !is.na(DBH05)& !is.na(ALT) & !is.na(IDBH) &
                !is.na(one_EB) & !is.na(one_DB) & !is.na(one_EC) &
                !is.na(two_EB) & !is.na(two_DB) & !is.na(two_EC)) %>%
-      subset(SP != "アカガシ" & SP != "イヌガシ" & SP != "ウラジロガシ" &
-               SP != "ブナ" & SP != "ケヤキ" & SP != "ヒメシャラ" &
-               SP != "イヌシデ" & SP != "オオモミジ" & SP != "イタヤカエデ" & 
-               SP != "カジカエデ") %>%
-      subset(LT == LeafType[j] & LD == 0 & DBH05 < 30 & IDBH >= 0)
-    sd_value <- data.frame(sd.one_DB = sd(d$one_EB),sd.one_EB = sd(d$one_DB),
-                           sd.two_DB = sd(d$two_EB),sd.two_EB = sd(d$two_DB))
+      subset(SP == "アカガシ" | SP == "イヌガシ" | SP == "ウラジロガシ" |
+               SP == "ブナ" | SP == "ケヤキ" | SP == "ヒメシャラ" |
+               SP == "イヌシデ" | SP == "オオモミジ" | SP == "イタヤカエデ" | 
+               SP == "カジカエデ") %>%
+      subset(LT == LeafType[j] & LD == 0 & DBH05 >= 30 & IDBH >= 0)
+    log.sd <- data.frame(sd.two_DB = sd(log(d$two_EB+0.01)),sd.two_EB = sd(log(d$two_DB+0.01)))
     
     # データの正規化(z-score)
     d$IDBH <- as.numeric(d$IDBH + 0.01)
@@ -171,7 +170,7 @@ for(j in 1:2){
     
     
     # 回帰係数をデータフレームに格納し、行と列を反転
-    result <- as.data.frame(cbind(AIC,deltaAIC,logLik,M_stat,M_p.value))
+    result <- as.data.frame(cbind(AIC,deltaAIC,logLik,M_stat,M_p.value,log.sd))
     
     # result（best.result），result（best.result）の結合
     if(r == 1){
