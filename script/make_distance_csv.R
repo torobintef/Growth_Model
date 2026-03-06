@@ -6,7 +6,7 @@ leaf <- c("EB","DB")
 for(i in 1:3){
   for(j in 1:2){
     data <- read.csv(paste0("result/glmm/Summary_",functional[i],"_",leaf[j],".csv"),header = T) %>%
-      mutate(distance = rep(1:50, each = 1),LT = leaf[j],FT = functional[i],SP = SP[i],layer = layer[i])
+      mutate(distance = rep(1:50, each = 1),group = leaf[j],FT = functional[i],SP = SP[i],layer = layer[i])
     if(i == 1 & j == 1){
       result1 <- data
     }else{
@@ -21,9 +21,8 @@ layer <- c("understory","overstory")
 functional <- c("understory","canopy")
 for(i in 1:2){
   for(j in 1:2){
-    data <- read.csv(paste0("result/glmm/Summary_",species[i],"_",functional[j],".csv"),header = T) %>%
-      subset(Row.names == "two_DB" | Row.names == "two_EB") %>%
-      mutate(distance = rep(1:50, each = 2),LT = leaf[i],FT = functional[j],SP = SP[i],layer = layer[j])
+    data <- read.csv(paste0("result/glmm/Summary_",species[i],"_",functional[j],"_.csv"),header = T) %>%
+      mutate(distance = rep(1:50, each = 1),group = leaf[i],FT = functional[j],SP = SP[i],layer = layer[j])
     if(i == 1 & j == 1){
       result2 <- data
     }else{
@@ -31,5 +30,6 @@ for(i in 1:2){
     }
   }
 }
-result <- bind_rows(result1,result2)
+result <- bind_rows(result1,result2) %>%
+  select(distance,group,SP,layer,deltaAIC)
 write.csv(result,"result/summary/distance.csv",row.names = F,fileEncoding = "utf-8")
