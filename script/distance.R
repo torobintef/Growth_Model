@@ -8,12 +8,12 @@
   library(gratia)
   library(dplyr)
   
-  LT <- "DB"
+  LT <- "EB"
   
-  data <- read.csv("result/glmm/distance.csv",header = T)
+  data <- read.csv("result/summary/distance.csv",header = T)
   d1 <- subset(data,data$group == LT & data$SP == "canopy" & data$layer == "understory")
   d2 <- subset(data,data$group == LT & data$SP == "canopy" & data$layer == "overstory")
-  d3 <- subset(data,data$group == LT & data$SP == "non_canopy" & data$layer == "understory")
+  d3 <- subset(data,data$group == LT & data$SP == "non-canopy" & data$layer == "understory")
   
   col1 <- MetBrewer::met.brewer("Egypt", 3)[1]
   col2 <- MetBrewer::met.brewer("Egypt", 3)[2]
@@ -83,11 +83,11 @@
   box(lwd = 2)
   axis(side = 1,at = seq(0,50,by = 10),lwd = 1.5,tck = -0.03,padj = 0)
   axis(side = 1,at = seq(5,45,by = 10),lwd = 1.5,tck = -0.015,padj = 1,labels = F)
-  # axis(side = 2,at = seq(0,300,by = 100),lwd = 1.5,las = 1,tck = -0.05,hadj = 1.2,labels = c("   0","100","200","300"))
-  axis(side = 2,at = seq(0,300,by = 100),lwd = 1.5,las = 1,tck = -0.05,hadj = 1.2,labels = F)
-  mtext("（B）落葉広葉樹",side = 3,line = 1,cex = 1,family = "BIZ UDPGothic")
+  axis(side = 2,at = seq(0,300,by = 100),lwd = 1.5,las = 1,tck = -0.05,hadj = 1.2,labels = c("   0","100","200","300"))
+  # axis(side = 2,at = seq(0,300,by = 100),lwd = 1.5,las = 1,tck = -0.05,hadj = 1.2,labels = F)
+  mtext("（A）常緑広葉樹",side = 3,line = 1,cex = 1,family = "BIZ UDPGothic")
   mtext("近接距離",side = 1,line = 3.3,cex = 1,family = "BIZ UDPGothic")
   # mtext("(m)",side = 1,line = 1,at = 55,cex = 0.8)
-  # mtext(expression(paste(Delta,AIC,sep = "")),side = 2,line = 5,cex = 1)
+  mtext(expression(paste(Delta,AIC,sep = "")),side = 2,line = 5,cex = 1)
   dev.off()
   

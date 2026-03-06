@@ -11,11 +11,11 @@ library(dplyr)
 
 exfname <- "Qa_and_Aa"
 
-data <- read.csv("result/glmm/distance.csv",header = T)
+data <- read.csv("result/summary/distance.csv",header = T)
 d1 <- subset(data,data$SP == "Qa" & data$layer == "understory")
-d2 <- subset(data,data$SP == "Qa" & data$layer == "canopy")
+d2 <- subset(data,data$SP == "Qa" & data$layer == "overstory")
 d3 <- subset(data,data$SP == "Aa" & data$layer == "understory")
-d4 <- subset(data,data$SP == "Aa" & data$layer == "canopy")
+d4 <- subset(data,data$SP == "Aa" & data$layer == "overstory")
 
 col1 <- MetBrewer::met.brewer("Egypt", 4)[1]
 col2 <- MetBrewer::met.brewer("Egypt", 4)[2]
