@@ -7,6 +7,7 @@
 # renv::install("spdep")
 # renv::install("performance")
 # renv::install("parameters")
+# renv::snapshot()
 
 library(tidyverse)
 library(lme4)
@@ -14,11 +15,7 @@ library(car)
 library(spdep)
 library(performance)
 library(parameters)
-# library(broom)
-# library(MuMIn)
-# options(na.action="na.fail")
-# library(ggeffects)
-# library(mgcv) #gam
+
 
 
 # repeat ------------------------------------------------------------------
