@@ -52,7 +52,7 @@
   plot(pred1,type = "n",xlab = "",axes = F,
        ylab = "",lwd = 3,ylim = c(0,300))
   rect(par("usr")[1], par("usr")[3],
-       par("usr")[2], par("usr")[4],
+       par("usr")[2], ｆpar("usr")[4],
        col = "white")
   lines(d1$distance,pred1,col = col1,lwd = 3)
   lines(d1$distance,pred2,col = col2,lwd = 3)
